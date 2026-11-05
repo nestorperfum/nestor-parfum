@@ -148,13 +148,13 @@ orders:[],moves:[],log:[]};
 try{DB=JSON.parse(localStorage.getItem('nestor_db'))}catch(e){}
 DB=DB||structuredClone(DEF);DB.cfg.was=DB.cfg.was||[DB.cfg.wa||'','','',''];if(!DB.v){DB.products=DB.products.filter(p=>!p.demo).concat(DEF.products);DB.v=2;}
 const save=()=>{try{localStorage.setItem('nestor_db',JSON.stringify(DB))}catch(e){}};
-let cart=[],fcat='',pay='detal',lvl='';
+let cart=[],fcat='',pay='detal',lvl='',custName='',payForm='',payOther='';
 const money=n=>DB.cfg.cur+Number(n).toFixed(2);
 const P=sku=>DB.products.find(p=>p.sku===sku);
 const status=p=>!p.active?'Desactivado':(p.stock<=0||p.soldOut)?'Agotado':p.stock<=DB.cfg.low?'Stock bajo':'Disponible';
 function unit(p,q){ // devuelve precio unitario o null
  if(pay==='cashea'){const v=p.cashea?.[lvl];return v>0?v:null}
- return(p.mayor>0&&p.min>0&&q>=p.min)?p.mayor:p.detal}
+ return((pay==='mayor'||(pay==='auto'&&p.min>0))&&p.mayor>0&&q>=(p.min||1))?p.mayor:p.detal}
 function go(s,c){location.hash='';if(c!==undefined)fcat=c;else if(!s||s==='')fcat='';render();if(s)setTimeout(()=>document.getElementById(s)?.scrollIntoView(),30);else scrollTo(0,0)}
 $('#q').oninput=()=>{if(!location.hash.startsWith('#admin'))render()};
 function render(){
@@ -178,7 +178,7 @@ function card(p){const st=status(p);return`<div class="card"><div class="ph" sty
  <span class="muted" id="s_${p.sku}"></span>
  <button class="btn" ${(p.stock<=0||p.soldOut)?'disabled':''} onclick="add('${p.sku}')">${(p.stock<=0||p.soldOut)?'Agotado':'Agregar al carrito'}</button></div>`}
 function ch(s,d){qs[s]=Math.max(1,(qs[s]||1)+d);upd(s)}
-function upd(s){const p=P(s),q=qs[s]||1;const e=$('#q_'+s);if(!e)return;e.textContent=q;const saved=pay;pay='detal';$('#s_'+s).textContent='Subtotal: '+money(unit(p,q)*q);pay=saved}
+function upd(s){const p=P(s),q=qs[s]||1;const e=$('#q_'+s);if(!e)return;e.textContent=q;const saved=pay;pay='auto';$('#s_'+s).textContent='Subtotal: '+money(unit(p,q)*q);pay=saved}
 function add(s){const p=P(s),q=qs[s]||1;const it=cart.find(c=>c.sku===s);const tot=(it?.q||0)+q;
  if(tot>p.stock){alert(`Stock insuficiente. Disponible: ${p.stock}`);return}
  it?it.q=tot:cart.push({sku:s,q});qs[s]=1;upd(s);cn();openCart()}
@@ -195,9 +195,9 @@ function openCart(){
  <td><div class="qty"><button onclick="cq('${r.p.sku}',-1)">−</button>${r.c.q}<button onclick="cq('${r.p.sku}',1)">+</button></div></td>
  <td>${r.sub===null?'—':money(r.sub)}</td><td><button class="btn sm red" aria-label="Quitar" onclick="rm('${r.p.sku}')">✕</button></td></tr>`).join('')}</table></div>
  <p><b>Total estimado: ${money(tot)}</b>${needs?' (+ productos por consultar)':''}<br><span class="muted">Sujeto a confirmación de disponibilidad y condiciones.</span></p>
- <label>Método de pago<select id="pm" onchange="setPay(this.value)"><option value="detal" ${pay!=='cashea'?'selected':''}>Detal / Mayor</option><option value="cashea" ${pay==='cashea'?'selected':''}>Cashea</option></select></label>
+ <label>Tipo de compra<select id="pm" onchange="setPay(this.value)"><option value="detal" ${pay==='detal'?'selected':''}>Al detal</option><option value="mayor" ${pay==='mayor'?'selected':''}>Al mayor</option><option value="cashea" ${pay==='cashea'?'selected':''}>Cashea</option></select></label>${pay==='mayor'?'<p class="muted">El precio al mayor aplica en los perfumes que lo tienen y al llegar a su mínimo de unidades.</p>':''}
  ${pay==='cashea'?`<p class="muted">Nivel Cashea: <b>${lvl==='consultar'?'Consultar por WhatsApp':lvl||'sin elegir'}</b> <button class="btn sm alt" onclick="casheaModal()">Cambiar</button></p>`:''}
- <label>Tu nombre<input id="nm" autocomplete="name"></label>
+ <label>Método de pago<select id="pf" onchange="payForm=this.value;openCart()"><option value="">Elige cómo pagar</option>${['Binance','Zelle','Pago Móvil','Otro'].map(o=>`<option value="${o}" ${payForm===o?'selected':''}>${o==='Otro'?'Otro tipo de pago':o}</option>`).join('')}</select></label>${payForm==='Otro'?`<label>¿Con qué deseas pagar?<input id="po" value="${esc(payOther)}" oninput="payOther=this.value" placeholder="Escribe tu método de pago"></label>`:''}<p class="muted">Tenemos todo tipo de pago. Si deseas pagar de otra forma, elige “Otro tipo de pago” y escríbelo.</p><label>Tu nombre<input id="nm" autocomplete="name" value="${esc(custName)}" oninput="custName=this.value"></label>
  <div class="row" style="margin-top:12px"><button class="btn alt" onclick="closeM()">Seguir comprando</button><button class="btn" onclick="send()">Enviar pedido por WhatsApp</button></div>`)}
 function setPay(v){pay=v;if(v==='cashea'&&!lvl){casheaModal();return}openCart()}
 function casheaModal(){modal(`<h3>¿Quieres pagar con Cashea?</h3><p class="muted">Elige tu nivel. El precio mostrado es el configurado por la tienda; las condiciones se confirman por WhatsApp.</p><div class="lv">${[1,2,3,4,5,6].map(n=>`<button class="btn alt" onclick="lvl='${n}';pay='cashea';openCart()">Nivel ${n}</button>`).join('')}</div><button class="btn alt" style="width:100%" onclick="lvl='consultar';pay='cashea';openCart()">No sé mi nivel / consultar por WhatsApp</button><p><button class="btn sm" onclick="pay='detal';openCart()">No, pagar normal</button></p>`)}
@@ -209,10 +209,10 @@ function send(){
  const wa=pickWA();if(!wa){alert('La tienda aún no tiene número de WhatsApp configurado.');return}
  if(pay==='cashea'&&!lvl){casheaModal();return}
  const{rows,tot,mayor}=calc();const name=$('#nm').value.trim();
- const method=pay==='cashea'?'Cashea':mayor?'Mayor':'Detal';
+ const method=pay==='cashea'?'Cashea':pay==='mayor'?'Al mayor':'Al detal';const fp=payForm==='Otro'?(payOther.trim()||'Otro (por confirmar)'):(payForm||'Por confirmar');
  const lines=rows.map(r=>`- ${r.p.name} (${r.p.sku}) x${r.c.q}: ${r.sub===null?'consultar precio':money(r.sub)}`).join('\n');
- const msg=`Hola, Nestor Parfum. Quiero realizar este pedido${name?' a nombre de '+name:''}:\n${lines}\nTotal estimado: ${money(tot)}.\nMétodo de pago: ${method}.${pay==='cashea'?`\nNivel Cashea: ${lvl==='consultar'?'consultar':lvl}.`:''}\nPor favor, confirma disponibilidad, precio aplicable y condiciones. Gracias.`;
- DB.orders.push({id:Date.now(),date:new Date().toISOString(),name,method,lvl:pay==='cashea'?lvl:'',items:rows.map(r=>({sku:r.p.sku,name:r.p.name,q:r.c.q,u:r.u,sub:r.sub})),total:tot,state:'preparado',note:'',deducted:false});save();
+ const msg=`Hola, Nestor Parfum. Quiero realizar este pedido${name?' a nombre de '+name:''}:\n${lines}\nTotal estimado: ${money(tot)}.\nTipo de compra: ${method}.\nMétodo de pago: ${fp}.${pay==='cashea'?`\nNivel Cashea: ${lvl==='consultar'?'consultar':lvl}.`:''}\nPor favor, confirma disponibilidad, precio aplicable y condiciones. Gracias.`;
+ DB.orders.push({id:Date.now(),date:new Date().toISOString(),name,method,form:fp,lvl:pay==='cashea'?lvl:'',items:rows.map(r=>({sku:r.p.sku,name:r.p.name,q:r.c.q,u:r.u,sub:r.sub})),total:tot,state:'preparado',note:'',deducted:false});save();
  window.open('https://wa.me/'+wa+'?text='+encodeURIComponent(msg),'_blank');
  modal('<h3>Mensaje preparado</h3><p>Se abrió WhatsApp con tu pedido. Revísalo y envíalo desde allí; la tienda lo confirmará contigo.</p><button class="btn" onclick="closeM()">Cerrar</button>');}
 
@@ -260,7 +260,7 @@ function inv(){$('#av').innerHTML=`<div class="panel"><b>Ajuste / recepción</b>
 function iadj(){const p=P($('#ip').value),c=parseInt($('#ic').value),r=$('#ir').value.trim();
  if(!p||!c||!r){alert('Indica cambio distinto de 0 y motivo.');return}if(p.stock+c<0){alert('El stock no puede quedar negativo.');return}
  if(!confirm(`¿Aplicar ${c>0?'+':''}${c} a ${p.name}?`))return;mv(p,c,$('#it').value,r);logA('Ajuste '+p.sku);save();inv()}
-function ords(){$('#av').innerHTML=`<div class="panel"><b>Pedidos</b> <span class="muted">(se guardan al preparar el mensaje de WhatsApp; stock solo se descuenta al confirmar)</span></div>`+(DB.orders.slice().reverse().map(o=>`<div class="panel"><b>#${String(o.id).slice(-6)}</b> · ${new Date(o.date).toLocaleString()} · <b>${o.state}</b><br>${esc(o.name||'Sin nombre')} · ${o.method}${o.lvl?' nivel '+o.lvl:''}<br>${o.items.map(i=>`${esc(i.name)} x${i.q} ${i.sub===null?'(consultar)':money(i.sub)}`).join('<br>')}<br><b>Total estimado ${money(o.total)}</b><div class="row" style="margin-top:8px">
+function ords(){$('#av').innerHTML=`<div class="panel"><b>Pedidos</b> <span class="muted">(se guardan al preparar el mensaje de WhatsApp; stock solo se descuenta al confirmar)</span></div>`+(DB.orders.slice().reverse().map(o=>`<div class="panel"><b>#${String(o.id).slice(-6)}</b> · ${new Date(o.date).toLocaleString()} · <b>${o.state}</b><br>${esc(o.name||'Sin nombre')} · ${o.method}${o.form?' · '+esc(o.form):''}${o.lvl?' nivel '+o.lvl:''}<br>${o.items.map(i=>`${esc(i.name)} x${i.q} ${i.sub===null?'(consultar)':money(i.sub)}`).join('<br>')}<br><b>Total estimado ${money(o.total)}</b><div class="row" style="margin-top:8px">
  ${o.state==='preparado'||o.state==='enviado por WhatsApp'?`<button class="btn sm" onclick="oact(${o.id},'confirmar')">Confirmar venta</button><button class="btn sm red" onclick="oact(${o.id},'cancelar')">Cancelar</button>`:''}
  ${o.state==='confirmado'?`<button class="btn sm" onclick="oact(${o.id},'entregar')">Marcar entregado</button><button class="btn sm red" onclick="oact(${o.id},'cancelar')">Cancelar (devuelve stock)</button>`:''}</div></div>`).join('')||'<p class="muted">Aún no hay pedidos.</p>')}
 function oact(id,a){const o=DB.orders.find(x=>x.id===id);
