@@ -131,6 +131,18 @@ main{max-width:1240px;padding-bottom:90px}
 .bcv{display:inline-block;background:#b3261e;color:#fff;border-radius:8px;padding:10px 18px;font-size:18px;margin:8px 0;font-family:Arial,sans-serif}.bcvs{display:inline-block;background:#b3261e;color:#fff;border-radius:6px;padding:2px 8px;font-size:12px;font-family:Arial,sans-serif;align-self:flex-start}
 .bigb{width:100%;display:flex;flex-direction:column;align-items:center;min-height:56px;margin-top:10px}.bigb small{font-weight:normal;font-size:11px}.full{width:100%;margin-top:8px}
 .box.wide{max-width:900px}.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:18px}@media(max-width:700px){.fgrid{grid-template-columns:1fr}.fp{font-size:28px}}
+:root{color-scheme:dark}
+*{scrollbar-width:thin;scrollbar-color:#5a4620 #0b0b0b}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-track{background:#0b0b0b}::-webkit-scrollbar-thumb{background:#5a4620;border-radius:8px}::-webkit-scrollbar-thumb:hover{background:#c9a45c}
+.bcv,.bcvs{background:#d9d9d9!important;color:#101010!important}
+.ft{text-transform:none;color:var(--gold);font-weight:normal;font-size:26px;margin:2px 0 6px}
+.fimg{border:1px solid var(--gold);border-radius:14px;padding:6px;background:radial-gradient(circle at 50% 70%,#c9a45c33,#0b0b0b 70%);box-shadow:0 0 24px #c9a45c33}
+.mini.big{width:170px;height:167px;margin:16px auto 4px;perspective:600px}
+.ftop{flex-wrap:wrap}#rate:empty{display:none}#rate{margin-bottom:10px}
+.prow{display:flex;align-items:center;justify-content:flex-start;gap:8px}
+.mini.big{width:150px;height:147px;margin:0 auto;flex:none}@media(max-width:700px){.mini.big{width:105px;height:103px}}
+.bcv,.bcvs{background:#0b0b0b!important;color:#fff!important;border:1px solid #3a3a3a}
+.bcv{padding:5px 12px!important;font-size:14px!important;margin:6px 0!important}
 </style><script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script></head><body>
 <div class="demo">Versión 1 · productos marcados “DEMO” son ejemplos; reemplázalos por los reales desde el panel.</div>
 <header>
@@ -193,18 +205,16 @@ function waAsk(s){const p=P(s),w=pickWA();if(!w){alert('La tienda aún no tiene 
 function zoomImg(u){modal('<img src="'+u+'" alt="" style="width:100%;border-radius:10px"><p><button class="btn" onclick="closeM()">Cerrar</button></p>')}
 function ficha(s){const p=P(s);if(!p)return;const im=(p.imgs&&p.imgs.length?p.imgs:p.img?[p.img]:[]);const st=status(p),off=p.old>p.detal?Math.round((1-p.detal/p.old)*100):0,ok=!(st==='Agotado'||st==='Desactivado'),rt=RT()[s]||0;
  try{history.replaceState(null,'','#p-'+slug(s))}catch(e){}
- modal('<div class="ftop"><button onclick="shareP(\''+s+'\')">⤴ Compartir</button><button onclick="copyP(\''+s+'\')">🔗 Copiar enlace</button><button class="x" aria-label="Cerrar" onclick="closeM()">✕</button></div><div class="fgrid"><div>'
- +'<div style="position:relative">'+(off?'<span class="off">'+off+'% OFF</span>':'')+(im[0]?'<img id="fb" src="'+im[0]+'" alt="'+esc(p.name)+'" onclick="zoomImg(this.src)" style="width:100%;border-radius:10px;cursor:zoom-in;display:block">':'<div class="ph" style="height:260px">'+bottle(p.col)+'</div>')+'</div>'
+ modal('<div class="ftop"><button onclick="shareP(\''+s+'\')">⤴ Compartir</button><button onclick="copyP(\''+s+'\')">🔗 Copiar enlace</button><button onclick="rateUI(\''+s+'\')">'+(rt?'★ '+rt+'/5':'☆ Calificar')+'</button><button class="x" aria-label="Cerrar" onclick="closeM()">✕</button></div><div id="rate"></div><div class="fgrid"><div>'
+ +'<div class="fimg" style="position:relative">'+(off?'<span class="off">'+off+'% OFF</span>':'')+(im[0]?'<img id="fb" src="'+im[0]+'" alt="'+esc(p.name)+'" onclick="zoomImg(this.src)" style="width:100%;border-radius:10px;cursor:zoom-in;display:block">':'<div class="ph" style="height:260px">'+bottle(p.col)+'</div>')+'</div>'
  +(im.length>1?'<div class="row" style="margin:8px 0">'+im.map(u=>'<img src="'+u+'" alt="" style="width:62px;height:62px;flex:none;object-fit:cover;border-radius:8px;cursor:pointer" onclick="$(\'#fb\').src=this.src">').join('')+'</div>':'')
- +'</div><div><h2 class="ft">'+esc(p.name)+'</h2><p class="muted">'+esc(p.brand)+' · '+esc(p.cat)+' · '+esc(p.size)+'</p>'
- +'<div class="fp">'+money(p.detal)+(p.old>0?' <s>'+money(p.old)+'</s>':'')+'</div>'
- +(p.bs>0?'<div class="bcv">'+money(p.bs)+' (BCV)</div>':'')
+
+ +'</div><div><p class="muted" style="margin:0">'+esc(p.brand)+' · '+esc(p.cat)+' · '+esc(p.size)+'</p><h2 class="ft">'+esc(p.name)+'</h2>'
+ +'<div class="prow"><div><div class="fp">'+money(p.detal)+(p.old>0?' <s>'+money(p.old)+'</s>':'')+'</div>'+(p.bs>0?'<div class="bcv">'+money(p.bs)+' (BCV)</div>':'')+'</div><div class="mini big" role="img" aria-label="Logo Nestor Parfum"><span class="m"><svg viewBox="0 0 48 47"><use href="#lg"/></svg><svg class="bk" viewBox="0 0 48 47"><use href="#lg"/></svg></span></div></div>'
  +(p.mayor>0&&p.min>0?'<p class="muted">Mayor: '+money(p.mayor)+' desde '+p.min+' uds</p>':'')
  +'<p class="muted">'+st+'</p><p>'+esc(p.desc)+'</p>'
  +'<button class="btn bigb" '+(ok?'':'disabled')+' onclick="add(\''+s+'\')">'+(ok?'🛒 Agregar al carrito<small>Luego podrás cambiar la cantidad</small>':'Agotado')+'</button>'
- +'<div class="row" style="margin-top:8px"><button class="btn alt" onclick="closeM()">‹ Continuar comprando</button><button class="btn alt" onclick="openCart()">Ver carrito ›</button></div>'
- +'<button class="btn alt full" onclick="waAsk(\''+s+'\')">Más información por WhatsApp</button>'
- +'<div id="rate"><button class="btn alt full" onclick="rateUI(\''+s+'\')">'+(rt?'★'.repeat(rt)+'☆'.repeat(5-rt)+' Tu calificación':'☆ Calificar producto')+'</button></div></div></div>');
+ +'<button class="btn alt full" onclick="openCart()">Ver carrito ›</button></div></div>');
  $('#mb').classList.add('wide')}
 const RT=()=>{try{return JSON.parse(localStorage.getItem('np_rate'))||{}}catch(e){return{}}};
 function rateUI(s){document.getElementById('rate').innerHTML='<div style="font-size:30px;color:var(--gold);text-align:center">'+[1,2,3,4,5].map(n=>'<span style="cursor:pointer" onclick="rate(\''+s+'\','+n+')">☆</span>').join(' ')+'</div><p class="muted" style="text-align:center">Toca una estrella. Tu calificación se guarda solo en este teléfono.</p>'}
