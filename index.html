@@ -150,12 +150,15 @@ main{max-width:1240px;padding-bottom:90px}
 .pspin .ph{background:none!important;border-radius:0;padding:0}.pspin .ph svg{filter:drop-shadow(0 8px 14px #000c)}
 .vmore{background:linear-gradient(135deg,#e6c97f,#c9a45c 50%,#8a6a2b);color:#101010;border:0;border-radius:99px;padding:12px 38px;font-family:Georgia,'Times New Roman',serif;font-size:16px;letter-spacing:1px;box-shadow:0 0 18px #c9a45c55;cursor:pointer}.vmore:hover{filter:brightness(1.1)}
 .ph>img{width:100%;height:100%;object-fit:cover;border-radius:8px;display:block}
+.sbox{position:relative;flex:1 1 140px;min-width:0}.sbox input{width:100%;padding-right:46px!important}
+.sbtn{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:38px;height:34px;border:0;border-radius:99px;background:transparent;color:var(--gold);cursor:pointer;display:grid;place-items:center}.sbtn:hover{background:#c9a45c22}
+@media(max-width:700px){header .sbox{order:3;flex:1 1 100%}}
 </style><script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script></head><body>
 <div class="demo">Versión 1 · productos marcados “DEMO” son ejemplos; reemplázalos por los reales desde el panel.</div>
 <header>
  <div class="logo" onclick="logoTap()"><div class="coin" role="img" aria-label="Logo Nestor Parfum"><div class="sp" id="sp"></div></div><span class="lt">NESTOR PARFUM</span></div>
  <nav id="nav"><a href="#" onclick="go('');return false">Inicio</a><a href="#cat" onclick="go('cat');return false">Catálogo</a><a href="#" onclick="go('cat','Ofertas');return false">Ofertas</a><a href="#may" onclick="go('may');return false">Mayoristas</a><a href="#ct" onclick="go('ct');return false">Contacto</a><a href="#admin" id="adm" style="opacity:.5">Admin</a></nav>
- <input id="q" type="search" placeholder="Buscar perfume…" aria-label="Buscar">
+ <div class="sbox"><input id="q" type="search" placeholder="Buscar perfume…" aria-label="Buscar"><button class="sbtn" type="button" aria-label="Buscar" onclick="doSearch()"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg></button></div>
  <a href="#admin" class="admb">⚙ Administrar</a><button class="btn" onclick="openCart()" aria-label="Carrito">🛒 <span id="cn">0</span></button>
 </header>
 <main id="app"></main>
@@ -423,5 +426,7 @@ function showReset(){if(!confirm('¿Volver a los perfumes originales?'))return;D
 try{if(localStorage.getItem('np_owner'))document.body.classList.add('owner')}catch(e){}
 let lt=0,lc=0;function logoTap(){const n=Date.now();lc=(n-lt<2500)?lc+1:1;lt=n;if(lc>=5){lc=0;location.hash='#admin';return}go('')}
 document.body.insertAdjacentHTML('beforeend','<nav class="tabbar" aria-label="Navegación"><button onclick="go(\'\')"><b><span class="mini"><span class="m"><svg viewBox="0 0 48 47" aria-hidden="true"><use href="#lg"/></svg><svg class="bk" viewBox="0 0 48 47" aria-hidden="true"><use href="#lg"/></svg></span></span></b>Inicio</button><button onclick="go(\'cat\')"><b>▦</b>Catálogo</button><button onclick="openCart()"><b>🛒</b>Carrito <span id="cn2">0</span></button><button onclick="waDirect()"><b><svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#25D366"/><path transform="translate(4.1 4.1) scale(.66)" fill="#fff" d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg></b>WhatsApp</button></nav>');
+function doSearch(){const q=document.getElementById('q');q.blur();if(location.hash.startsWith('#admin')){go('');return}render();setTimeout(()=>{const e=document.getElementById('cat');if(e)e.scrollIntoView({behavior:'smooth'})},40)}
+$('#q').addEventListener('keydown',e=>{if(e.key==='Enter')doSearch()});
 addEventListener('hashchange',render);render();cn();loadPub();
 </script></body></html>
